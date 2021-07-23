@@ -291,7 +291,7 @@ int main()
     time(&start);
     a_star_search(mapa, inicio, destino,3);
     time(&end); 
-    cout<<"\nTempo de  Execucao com puWu: "<<double(end-start)<<std::setprecision(5)<<" s\n";
+    cout<<"\nTempo de Execucao com puWu: "<<double(end-start)<<std::setprecision(5)<<" s\n";
 
     time(&start);
     a_star_search(mapa, inicio, destino,4);
