@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 """
+Created on Thu Jul 29 14:24:20 2021
+
+@author: mathe
+"""
+
+# -*- coding: utf-8 -*-
+"""
 Spyder Editor
 
 This is a temporary script file.
@@ -81,7 +88,7 @@ def ComparaCusto(no):
 
 
 def ConverteParaSimbolo(e):
-    if e==1: return '[]'
+    if e==1: return '1'
     elif e==2: return "P"
     elif e==3: return "D"
     elif e==4: return "-"
@@ -116,6 +123,7 @@ def a_star(inicio=None,destino=None, mapa=None, file=None,tipo=None):
     
     count=1
     while(not len(fronteira)==0):
+        print(count)
         #print("{:.1f} %".format(count/100000), end="\r")
         
         atual = fronteira[-1]
@@ -123,7 +131,6 @@ def a_star(inicio=None,destino=None, mapa=None, file=None,tipo=None):
         caminho.append(atual)
         
         if((atual.i==destino.i and atual.j==destino.j) or count==50000): 
-            salvar_mapa(mapa_2, file)
             break
     
         
@@ -138,7 +145,7 @@ def a_star(inicio=None,destino=None, mapa=None, file=None,tipo=None):
                 #custo_g+=1
                 h = Heuristica(vizinho, destino)
                 
-                if tipo == 1:
+                """if tipo == 1:
                     # Ponderado
                     custo = custo_g+w*h
                     
@@ -147,15 +154,15 @@ def a_star(inicio=None,destino=None, mapa=None, file=None,tipo=None):
                     custo=(1-w)*custo_g+w*h
                     
                 elif tipo==3:
-                    # puWU
-                    custo = custo_g / (2*w - 1) +h if  custo_g < (2*w - 1) *h else custo_g + h / w
+                    # puWU"""
+                custo = custo_g / (2*w - 1) +h if  custo_g < (2*w - 1) *h else custo_g + h / w
                     
-                elif tipo==4:
-                    #puWD
-                    custo =  custo_g +h if  custo_g < h else (custo_g + h*(2*w-1)) / w
+                #elif tipo==4:
+                    #puWD"""
+                #custo =  custo_g +h if  custo_g < h else (custo_g + h*(2*w-1)) / w
                     
-                else:
-                    custo = custo_g+h
+                #else:
+                   # custo = custo_g+h
                     
                 try:
                     it = listafechada.index((vizinho.i,vizinho.j))
@@ -173,44 +180,34 @@ def a_star(inicio=None,destino=None, mapa=None, file=None,tipo=None):
         fronteira.sort(key=ComparaCusto, reverse=True)
         count+=1
     
-    #MarcarCaminho(mapa_2,caminho,inicio,destino)
-    #ImprimirMapa(mapa_2)
-    #print(count)
+    MarcarCaminho(mapa_2,caminho,inicio,destino)
+    ImprimirMapa(mapa_2)
     return mapa_2
 
 def main():
-    mypath = 'D:/TCC/src/mapas/mapas_aleatorios'
-    onlyfiles = [f for f in os.listdir(mypath) if isfile(join(mypath, f))]
-    count = 0
-    count = 0
-    for file in onlyfiles:
-        print(count)
-        file_abs = join(mypath,file)
-
-        inicio = No(0,0)
+    file = 'D:/TCC/src/mapas/mapas_filtrados/mapa_11x18.csv'  
+    
+    inicio = No(0,0)
         
        
-        # Carrega o arquivo
-        mapa=pd.read_csv(str(file_abs), header=None, delimiter=";") 
-        mapa=np.array(mapa)
-        mapa=mapa[:,:-1]
-       
-        dest = No(len(mapa)-1,len(mapa[0])-1,f=0.0)
-        
-        # Validação do inicio e Partira
-        if(not CelulaVazia(mapa,inicio.i,inicio.j) or VerificaLimites(mapa, inicio.i, inicio.j)): 
-            print("PArtida não é válida!")
-            os.remove(file_abs)
-            continue
-        
-        if(not CelulaVazia(mapa,dest.i,dest.j) or VerificaLimites(mapa, dest.i, dest.j)): 
-            print("Destino não é válido!")
-            os.remove(file_abs)
-            continue
+    # Carrega o arquivo
+    mapa=pd.read_csv(str(file), header=None, delimiter=";") 
+    mapa=np.array(mapa)
+    #mapa=mapa[:,:-1]
+   
+    print(mapa)
+    dest = No(len(mapa)-1,len(mapa[0])-1,f=0.0)
+    
+    # Validação do inicio e Partira
+    if(not CelulaVazia(mapa,inicio.i,inicio.j) and VerificaLimites(mapa, inicio.i, inicio.j)): 
+        print("Partida não é válida!")
+        return
+    
+    if(not CelulaVazia(mapa,dest.i,dest.j) and VerificaLimites(mapa, dest.i, dest.j)): 
+        print("Destino não é válido!")
+        return
   
-        a_star(inicio,dest, mapa,file=file, tipo=4)
-        count+=1
-        
+    caminho=a_star(inicio,dest, mapa,file=file, tipo=4)    
     return
         
 
