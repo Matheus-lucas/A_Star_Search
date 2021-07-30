@@ -221,25 +221,6 @@ void a_star_search(vector<vector<int>> &mapa, No inicio, No destino, int tipo)
 }
 
 
-void has(vector<vector<int>> &mapa, No inicio, No destino, int tipo)
-{
-
-    vector<vector<vector<int>>> mapas;
-    int x_tam = (int)mapa.size();
-    int y_tam = (int)mapa[0].size();
-
-    auto div_x =  x_tam%2==0 ? x_tam/2 : (x_tam+1)/2;
-    auto div_y =  y_tam%2==0 ? y_tam/2 : (x_tam+1)/2;
-    
-    for (int i=0;i<=div_x;i++){
-        for (int j=0;j<div_y;j++)
-        {
-        }
-        
-    }
-}
-
-
 int main()
 {
 
