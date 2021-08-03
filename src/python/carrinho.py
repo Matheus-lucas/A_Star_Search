@@ -18,11 +18,7 @@ Spyder Editor
 
 This is a temporary script file.
 """
-
-import pandas as pd
 import numpy as np
-from os.path import isfile, join
-import os
 
 # Peso
 w=0.9
@@ -124,8 +120,6 @@ def ImprimirMapa(mapa):
 def salvar_mapa(mapa,file):
     mapa_2=np.copy(mapa)
     newpath = 'D:/TCC/src/mapas/mapas_filtrados_2'
-    new_file = join(newpath,file)
-    pd.DataFrame(mapa_2).to_csv(new_file, header=None, index=None,sep=";")
     return
 
 # funçaõ de busca A* search
@@ -254,8 +248,9 @@ def main():
         
        
     # Carrega o arquivo
-    mapa=pd.read_csv(str(file), header=None, delimiter=";") 
-    mapa=np.array(mapa)
+    my_data = np.genfromtxt(str(file), delimiter=';', dtype=int) 
+    mapa=np.array(my_data)
+    print(mapa)
     #mapa=mapa[:,:-1]
    
     print(mapa)
