@@ -104,7 +104,7 @@ def ImprimirMapa(mapa):
 
 def salvar_mapa(mapa,file):
     mapa_2=np.copy(mapa)
-    newpath = 'D:/TCC/src/mapas/mapas_filtrados_2'
+    newpath = 'D:/TCC/src/pythonmapa_1.csv'
     new_file = join(newpath,file)
     pd.DataFrame(mapa_2).to_csv(new_file, header=None, index=None,sep=";")
     return
@@ -185,7 +185,7 @@ def a_star(inicio=None,destino=None, mapa=None, file=None,tipo=None):
     return mapa_2
 
 def main():
-    file = 'D:/TCC/src/mapas/mapas_filtrados/mapa_61x69.csv'  
+    file = 'D:/TCC/src/python/mapa_1.csv'  
     
     inicio = No(0,0)
         

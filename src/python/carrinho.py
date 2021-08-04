@@ -1,24 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jul 29 15:48:42 2021
-
-@author: mathe
-"""
-
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Jul 29 14:24:20 2021
-
-@author: mathe
-"""
-
-# -*- coding: utf-8 -*-
-"""
 Spyder Editor
 
 This is a temporary script file.
 """
 import numpy as np
+import RPi.GPIO as GPIO
+import time
 
 # Peso
 w=0.9
@@ -189,24 +177,24 @@ def a_star(inicio=None,destino=None, mapa=None, file=None):
     print(count)
     return mapa_2,caminho
 
-def MoveCarrinho(tipo):
-    if tipo==1:
-        print("frente")
-        
-    elif tipo==2:
-        print("tras")
-        
-    elif tipo==3:
-        print("desce")
-        
-    else:
-        print("sobe")
-        
 
+        
 def ListaMovimentos(caminho,destino):
     no = caminho[-1]
     caminho_carrinho = list()
     move_carrinho = list()
+    
+    GPIO.setmode(GPIO.BOARD)
+ 
+    Motor1A = 16 #motor 1 frente
+    Motor1B = 18 #motor 1 ré
+    Motor2A = 13 #motor 2 frente
+    Motor2B = 15 #motor 2 ré
+ 
+    GPIO.setup(Motor1A,GPIO.OUT)
+    GPIO.setup(Motor1B,GPIO.OUT)
+    GPIO.setup(Motor2A,GPIO.OUT)
+    GPIO.setup(Motor2B,GPIO.OUT)
     while( no.anterior != None):
         caminho_carrinho.append((no.anterior.i,no.anterior.j))
         no=no.anterior
@@ -221,19 +209,38 @@ def ListaMovimentos(caminho,destino):
         move_carrinho.append((prox[0]-atual[0], prox[1]-atual[1]))
     
     
-    print("Carrinho")
-    print(move_carrinho)
+    #print("Carrinho")
+    #print(move_carrinho)
     for move in move_carrinho:
         if move == (0,1):
-            MoveCarrinho(1)
+            GPIO.output(Motor1A,GPIO.HIGH)
+            GPIO.output(Motor1B,GPIO.LOW)
+            GPIO.output(Motor2A,GPIO.HIGH)
+            GPIO.output(Motor2B,GPIO.LOW)
             
         elif move == (0,-1):
-            MoveCarrinho(2)
+            GPIO.output(Motor1A,GPIO.LOW)
+            GPIO.output(Motor1B,GPIO.HIGH)
+            GPIO.output(Motor2A,GPIO.LOW)
+            GPIO.output(Motor2B,GPIO.HIGH)
+            
             
         elif move == (1,0):
-            MoveCarrinho(3)
+            GPIO.output(Motor1A,GPIO.HIGH)
+            GPIO.output(Motor1B,GPIO.LOW)
+            GPIO.output(Motor2A,GPIO.LOW)
+            GPIO.output(Motor2B,GPIO.LOW)
+            
     
-        else: MoveCarrinho(4)
+        else:
+            GPIO.output(Motor1A,GPIO.LOW)
+            GPIO.output(Motor1B,GPIO.LOW)
+            GPIO.output(Motor2A,GPIO.HIGH)
+            GPIO.output(Motor2B,GPIO.LOW)
+            
+        
+        time.sleep(1)
+    GPIO.cleanup()
     return
     
   
@@ -242,7 +249,7 @@ def ListaMovimentos(caminho,destino):
     
     
 def main():
-    file = 'D:/TCC/src/mapas/mapas_filtrados/mapa_11x18.csv'  
+    file = '/home/pi/Documents/tcc_matheus/A_Star_Search-main/src/python/mapa_11x18.csv'
     
     inicio = No(0,0)
         
@@ -250,10 +257,7 @@ def main():
     # Carrega o arquivo
     my_data = np.genfromtxt(str(file), delimiter=';', dtype=int) 
     mapa=np.array(my_data)
-    print(mapa)
-    #mapa=mapa[:,:-1]
    
-    print(mapa)
     destino = No(len(mapa)-1,len(mapa[0])-1,f=0.0)
     
     # Validação do inicio e Partida

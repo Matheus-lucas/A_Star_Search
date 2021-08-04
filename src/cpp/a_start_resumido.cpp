@@ -229,7 +229,7 @@ int main()
     No inicio{0, 0};
     
 
-    auto mapa = LeMapa("D:\\TCC\\src\\mapas\\mapas_filtrados\\mapa_11x18.csv");
+    auto mapa = LeMapa("D:\\TCC\\src\\python\\mapa_1.csv");
     
     if (mapa.size()==0)
     {
