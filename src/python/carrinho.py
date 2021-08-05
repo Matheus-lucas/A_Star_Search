@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Spyder Editor
+Created on Thu Jul 29 14:24:20 2021
 
-This is a temporary script file.
+@author: mathe
 """
 import numpy as np
-import RPi.GPIO as GPIO
+#import RPi.GPIO as GPIO
 import time
 
 # Peso
@@ -99,16 +99,11 @@ def ConverteParaSimbolo(e):
 def ImprimirMapa(mapa):
     for line in mapa:
         for num in line:
-            print(ConverteParaSimbolo(num),end="")
+            print(ConverteParaSimbolo(num), end="")
         
         print("\n")
     return
 
-# Salvar o mapa como arquivo csv
-def salvar_mapa(mapa,file):
-    mapa_2=np.copy(mapa)
-    newpath = 'D:/TCC/src/mapas/mapas_filtrados_2'
-    return
 
 # funçaõ de busca A* search
 def a_star(inicio=None,destino=None, mapa=None, file=None):
@@ -178,12 +173,13 @@ def a_star(inicio=None,destino=None, mapa=None, file=None):
     return mapa_2,caminho
 
 
-        
+       
 def ListaMovimentos(caminho,destino):
     no = caminho[-1]
     caminho_carrinho = list()
     move_carrinho = list()
     
+    """
     GPIO.setmode(GPIO.BOARD)
  
     Motor1A = 16 #motor 1 frente
@@ -195,6 +191,7 @@ def ListaMovimentos(caminho,destino):
     GPIO.setup(Motor1B,GPIO.OUT)
     GPIO.setup(Motor2A,GPIO.OUT)
     GPIO.setup(Motor2B,GPIO.OUT)
+    """
     while( no.anterior != None):
         caminho_carrinho.append((no.anterior.i,no.anterior.j))
         no=no.anterior
@@ -209,47 +206,47 @@ def ListaMovimentos(caminho,destino):
         move_carrinho.append((prox[0]-atual[0], prox[1]-atual[1]))
     
     
-    #print("Carrinho")
-    #print(move_carrinho)
+    print("Carrinho")
+    print(move_carrinho)
+    anterior = (0,0)
+    """
+    # Estipulando que o carrinho começa em P, virado para o sul
     for move in move_carrinho:
-        if move == (0,1):
+        if move == (1,0) or move == anterior:
             GPIO.output(Motor1A,GPIO.HIGH)
             GPIO.output(Motor1B,GPIO.LOW)
             GPIO.output(Motor2A,GPIO.HIGH)
             GPIO.output(Motor2B,GPIO.LOW)
+            time.sleep(1)
             
-        elif move == (0,-1):
+            
+        elif move == (0,1) and move!=anterior:
             GPIO.output(Motor1A,GPIO.LOW)
-            GPIO.output(Motor1B,GPIO.HIGH)
-            GPIO.output(Motor2A,GPIO.LOW)
-            GPIO.output(Motor2B,GPIO.HIGH)
-            
-            
-        elif move == (1,0):
-            GPIO.output(Motor1A,GPIO.HIGH)
             GPIO.output(Motor1B,GPIO.LOW)
-            GPIO.output(Motor2A,GPIO.LOW)
+            GPIO.output(Motor2A,GPIO.HIGH)
             GPIO.output(Motor2B,GPIO.LOW)
+            time.sleep(0.25)
             
     
-        else:
-            GPIO.output(Motor1A,GPIO.LOW)
+        elif move == (-1,0) and move!=anterior:
+            GPIO.output(Motor1A,GPIO.HIGH)
             GPIO.output(Motor1B,GPIO.LOW)
-            GPIO.output(Motor2A,GPIO.HIGH)
+            GPIO.output(Motor2A,GPIO.LOW)
             GPIO.output(Motor2B,GPIO.LOW)
+            time.sleep(0.25)
+         
+        anterior = move
             
-        
-        time.sleep(1)
     GPIO.cleanup()
     return
     
   
     
-    
+    """
     
     
 def main():
-    file = '/home/pi/Documents/tcc_matheus/A_Star_Search-main/src/python/mapa_11x18.csv'
+    file = 'D:\TCC\src\python\mapa_1.csv'
     
     inicio = No(0,0)
         
