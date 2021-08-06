@@ -229,22 +229,16 @@ def ListaMovimentos(caminho,destino):
         
         # 1->2: norte->leste(direita), 2->3: leste->sul(direita)
         if  (move == 2 and anterior == 1)or (move == 3 and anterior == 2):
-            print("vira a direita e a frente")
+            print("vira a direita")
             GPIO.output(Motor1A,GPIO.HIGH)
             GPIO.output(Motor1B,GPIO.LOW)
             GPIO.output(Motor2A,GPIO.LOW)
             GPIO.output(Motor2B,GPIO.LOW)
             time.sleep(tempo)
             
-            GPIO.output(Motor1A,GPIO.HIGH)
-            GPIO.output(Motor1B,GPIO.LOW)
-            GPIO.output(Motor2A,GPIO.HIGH)
-            GPIO.output(Motor2B,GPIO.LOW)
-            time.sleep(tempo)
-            
         # 3->2: sul->leste(esquerda), 2->1: leste->norte(esquerda)
         elif (move == 2 and anterior == 3) or (move == 1 and anterior == 2):
-            print("vira a esquerda e a frente")
+            print("vira a esquerda")
             
             GPIO.output(Motor1A,GPIO.LOW)
             GPIO.output(Motor1B,GPIO.LOW)
@@ -252,15 +246,7 @@ def ListaMovimentos(caminho,destino):
             GPIO.output(Motor2B,GPIO.LOW)
             time.sleep(tempo)
             
-            GPIO.output(Motor1A,GPIO.HIGH)
-            GPIO.output(Motor1B,GPIO.LOW)
-            GPIO.output(Motor2A,GPIO.HIGH)
-            GPIO.output(Motor2B,GPIO.LOW)
-            time.sleep(tempo)
             
-            
-            
-       
         print("em frente")
         GPIO.output(Motor1A,GPIO.HIGH)
         GPIO.output(Motor1B,GPIO.LOW)
