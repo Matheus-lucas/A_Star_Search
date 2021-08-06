@@ -5,7 +5,7 @@ Created on Thu Jul 29 14:24:20 2021
 @author: mathe
 """
 import numpy as np
-#import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 import time
 
 # Peso
@@ -179,9 +179,8 @@ def ListaMovimentos(caminho,destino):
     caminho_carrinho = list()
     move_carrinho = list()
     
-    """
+    
     GPIO.setmode(GPIO.BOARD)
- 
     Motor1A = 16 #motor 1 frente
     Motor1B = 18 #motor 1 ré
     Motor2A = 13 #motor 2 frente
@@ -191,7 +190,7 @@ def ListaMovimentos(caminho,destino):
     GPIO.setup(Motor1B,GPIO.OUT)
     GPIO.setup(Motor2A,GPIO.OUT)
     GPIO.setup(Motor2B,GPIO.OUT)
-    """
+    
     while( no.anterior != None):
         caminho_carrinho.append((no.anterior.i,no.anterior.j))
         no=no.anterior
@@ -209,44 +208,61 @@ def ListaMovimentos(caminho,destino):
     print("Carrinho")
     print(move_carrinho)
     anterior = (0,0)
-    """
+    
     # Estipulando que o carrinho começa em P, virado para o sul
     for move in move_carrinho:
         if move == (1,0) or move == anterior:
+            print("enfrente")
+            
             GPIO.output(Motor1A,GPIO.HIGH)
             GPIO.output(Motor1B,GPIO.LOW)
             GPIO.output(Motor2A,GPIO.HIGH)
             GPIO.output(Motor2B,GPIO.LOW)
-            time.sleep(1)
+            time.sleep(0.5)
             
             
         elif move == (0,1) and move!=anterior:
+            print("vira a esquerda e a frente")
+            
             GPIO.output(Motor1A,GPIO.LOW)
             GPIO.output(Motor1B,GPIO.LOW)
             GPIO.output(Motor2A,GPIO.HIGH)
             GPIO.output(Motor2B,GPIO.LOW)
-            time.sleep(0.25)
+            time.sleep(0.5)
+            
+            GPIO.output(Motor1A,GPIO.HIGH)
+            GPIO.output(Motor1B,GPIO.LOW)
+            GPIO.output(Motor2A,GPIO.HIGH)
+            GPIO.output(Motor2B,GPIO.LOW)
+            time.sleep(0.5)
             
     
         elif move == (-1,0) and move!=anterior:
+            print("vira a direita e a frente")
+            
             GPIO.output(Motor1A,GPIO.HIGH)
             GPIO.output(Motor1B,GPIO.LOW)
             GPIO.output(Motor2A,GPIO.LOW)
             GPIO.output(Motor2B,GPIO.LOW)
-            time.sleep(0.25)
+            time.sleep(0.5)
+            
+            GPIO.output(Motor1A,GPIO.HIGH)
+            GPIO.output(Motor1B,GPIO.LOW)
+            GPIO.output(Motor2A,GPIO.HIGH)
+            GPIO.output(Motor2B,GPIO.LOW)
+            time.sleep(0.5)
+            
+            
+            
          
         anterior = move
             
     GPIO.cleanup()
     return
     
-  
-    
-    """
-    
     
 def main():
-    file = 'D:\TCC\src\python\mapa_1.csv'
+    file = '/home/pi/Documents/tcc_matheus/A_Star_Search-main/src/python/mapa_1.csv'
     
     inicio = No(0,0)
         
