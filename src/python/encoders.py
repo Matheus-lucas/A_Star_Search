@@ -18,7 +18,7 @@ pulsos_por_volta = 20
 encoder_1 = 11
 encoder_2 = 12
 
-timeold = int(round(time.time() * 1000))
+timeold = time.time()
 
 def contador_1(encoder_1):
     pulsos_1+=1
@@ -50,6 +50,7 @@ if __name__ == '__main__':
     GPIO.output(Motor2A,GPIO.HIGH)
     GPIO.output(Motor2B,GPIO.LOW)
     
+    lista_rpm=list()
     # habilita as interrpções para contar os pulsos
     GPIO.add_event_detect(encoder_1, GPIO.RISING, 
             callback=contador_1)
@@ -60,29 +61,28 @@ if __name__ == '__main__':
     count=0
    
     while(count<5):
-        milliseconds = int(round(time.time() * 1000))
+        milliseconds = time.time()
         delta_time = milliseconds-timeold
-   
-    
-        if (delta_time >=1000):  
+           
+        print(delta_time)
+        
+        if(delta_time < 0):
+            GPIO.cleanup()
+            
+        if (delta_time >=2):  
           
             GPIO.remove_event_detect(encoder_1)
             GPIO.remove_event_detect(encoder_2)
             
-            # 60: segundos-> minutos
+            
             # pulsos/pulsos_por_volta : porçao da rotação total do motor
-            # 1000: função millis retorna em millisegundos
-            print("Pulsos 1",pulsos_1)
-            rpm_1 = (60*1000/pulsos_por_volta)/(delta_time)*pulsos_1
+            
+            rpm_1 = (60/pulsos_por_volta)/(delta_time)*pulsos_1
         
-            print("pULSOS 2:",pulsos_2)
             rpm_2 = (60*1000/pulsos_por_volta)/(delta_time)*pulsos_2
         
-            timeold = int(round(time.time() * 1000))
+            timeold = time.time()
             
-            print("Contagem: ",count+1)
-            print("RPM 1: ", rpm_1)
-            print("RPM 2: ",rpm_2)
             pulsos_1=0
             pulsos_2=0
         
@@ -93,9 +93,11 @@ if __name__ == '__main__':
             GPIO.add_event_detect(encoder_2, GPIO.RISING, 
                 callback=contador_2)
             count+=1
+            print(count)
+            lista_rpm.append((rpm_1,rpm_2))
             
     GPIO.cleanup()
-    
+    print(lista_rpm)
     
     
 
