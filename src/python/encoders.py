@@ -66,7 +66,7 @@ if __name__ == '__main__':
            
         print(delta_time)
         
-        if(delta_time < 0):
+        if(delta_time <0):
             GPIO.cleanup()
             
         if (delta_time >=2):  
