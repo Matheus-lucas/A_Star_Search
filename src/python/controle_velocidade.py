@@ -42,6 +42,9 @@ if __name__ == '__main__':
     GPIO.setup(Motor2A,GPIO.OUT)
     GPIO.setup(Motor2B,GPIO.OUT)
     
+    pwm_1 = GPIO.PWM(Motor1A,100)
+    pwm_2 = GPIO.PWM(Motor2A,100)
+    
     GPIO.setup(encoder_1,GPIO.IN)
     GPIO.setup(encoder_2,GPIO.IN)
 
@@ -75,11 +78,23 @@ if __name__ == '__main__':
                 
                 
                 # pulsos/pulsos_por_volta : porçao da rotação total do motor
-                rpm_1 = (60/pulsos_por_volta)/(delta_time)*pulsos_1
+                rpm_1 = round((60/pulsos_por_volta)/(delta_time)*pulsos_1,3)
             
-                rpm_2 = (60/pulsos_por_volta)/(delta_time)*pulsos_2
+                rpm_2 = round((60/pulsos_por_volta)/(delta_time)*pulsos_2,3)
             
                 timeold = time.time()
+                
+                if(rpm_1 != rpm_2):
+                    
+                    duty_cicle = int(100*min(rpm_1,rpm_2)/(max(rpm_1,rpm_2)))
+                    
+                    
+                    
+                    pwm_1.start(0)
+                    pwm_2.start(0)
+                    
+                    pwm_1.ChangeDutyCycle(duty_cicle)
+                    pwm_2.ChangeDutyCycle(duty_cicle)
                 
                 pulsos_1=0
                 pulsos_2=0
@@ -97,5 +112,6 @@ if __name__ == '__main__':
         print(lista_rpm)
     
     except:
+        print(lista_rpm)
         GPIO.cleanup()
     
