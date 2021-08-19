@@ -31,6 +31,7 @@ def contador_2(encoder_2):
     return
 
 if __name__ == '__main__':
+    
     GPIO.setmode(GPIO.BOARD)
     Motor1A = 16 #motor 1 frente
     Motor1B = 18 #motor 1 ré
@@ -44,69 +45,52 @@ if __name__ == '__main__':
     
     pwm_1 = GPIO.PWM(Motor1A,100)
     pwm_2 = GPIO.PWM(Motor2A,100)
+    pwm_1.start(0)
+    pwm_2.start(0)
     
     GPIO.setup(encoder_1,GPIO.IN)
     GPIO.setup(encoder_2,GPIO.IN)
 
 
-    GPIO.output(Motor1A,GPIO.HIGH)
-    GPIO.output(Motor1B,GPIO.LOW)
-    GPIO.output(Motor2A,GPIO.HIGH)
-    GPIO.output(Motor2B,GPIO.LOW)
+    GPIO.output(Motor1A,GPIO.LOW)
+    GPIO.output(Motor1B,GPIO.HIGH)
+    GPIO.output(Motor2A,GPIO.LOW)
+    GPIO.output(Motor2B,GPIO.HIGH)
     
     lista_rpm=list()
     # habilita as interrpções para contar os pulsos
     GPIO.add_event_detect(encoder_1, GPIO.RISING, 
-            callback=contador_1)
+            callback=contador_1, bouncetime=300)
     
     GPIO.add_event_detect(encoder_2, GPIO.RISING,
-            callback=contador_2)
+            callback=contador_2,bouncetime=300)
     
     count=0
     try:
         while(count<5):
             milliseconds = time.time()
             delta_time = milliseconds-timeold
-            
-            if(delta_time <0):
-                GPIO.cleanup()
                 
             if (delta_time >=2):  
-              
-                #GPIO.remove_event_detect(encoder_1)
-                #GPIO.remove_event_detect(encoder_2)
-                
+                count+=1
                 
                 # pulsos/pulsos_por_volta : porçao da rotação total do motor
-                rpm_1 = round((60/pulsos_por_volta)/(delta_time)*pulsos_1,3)
+                rpm_1 = int((60/pulsos_por_volta)/(delta_time)*pulsos_1)
             
-                rpm_2 = round((60/pulsos_por_volta)/(delta_time)*pulsos_2,3)
+                rpm_2 = int((60/pulsos_por_volta)/(delta_time)*pulsos_2)
             
                 timeold = time.time()
-                
+                lista_rpm.append((rpm_1,rpm_2))
                 if(rpm_1 != rpm_2):
                     
-                    duty_cicle = int(100*min(rpm_1,rpm_2)/(max(rpm_1,rpm_2)))
-                    
-                    
-                    
-                    pwm_1.start(0)
-                    pwm_2.start(0)
+                    duty_cicle = 80
                     
                     pwm_1.ChangeDutyCycle(duty_cicle)
                     pwm_2.ChangeDutyCycle(duty_cicle)
                 
                 pulsos_1=0
                 pulsos_2=0
-            
-                # habilita as interrpções para contar os pulsos
-                '''GPIO.add_event_detect(encoder_1, GPIO.RISING, 
-                    callback=contador_1)
-            
-                GPIO.add_event_detect(encoder_2, GPIO.RISING, 
-                    callback=contador_2)'''
-                count+=1
-                lista_rpm.append((round(rpm_1),(rpm_2)))
+                        
                 
         GPIO.cleanup()
         print(lista_rpm)
