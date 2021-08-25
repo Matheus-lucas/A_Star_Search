@@ -107,10 +107,10 @@ def ControleVelocidade():
     if (first_time):
         
         GPIO.add_event_detect(encoder_1, GPIO.RISING, 
-            callback=contador_1, bouncetime=300)
+            callback=contador_1, bouncetime=50)
     
         GPIO.add_event_detect(encoder_2, GPIO.RISING,
-            callback=contador_2,bouncetime=300)
+            callback=contador_2,bouncetime=50)
 
         first_time= False
     
@@ -149,7 +149,7 @@ def ControleVelocidade():
     print(media_rpm_1)
     print(media_rpm_2)
     # Se as velocidades forem diferentes, reduz a velocidade do motor com maior rpm
-    if(media_rpm_1 not in range(media_rpm_2-4,media_rpm_2+4)):
+    if(media_rpm_1 not in range(media_rpm_2-2,media_rpm_2+2)):
         # Diferença de rpm para alteração do Dutycycle(DC)
         delta_dc = abs((media_rpm_1-media_rpm_2))*0.5
         
