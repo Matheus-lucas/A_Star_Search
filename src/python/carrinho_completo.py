@@ -101,8 +101,8 @@ def ControleVelocidade():
     # Para diferença de tempo
     timeold = time.time()
 
-    lista_rpm=list()
-
+    lista_rpm_1=list()
+    lista_rpm_2=list()
     # habilita as interrupções para contagem dos pulsos na primeira vez
     if (first_time):
         
@@ -114,9 +114,9 @@ def ControleVelocidade():
 
         first_time= False
     
-
-    while(True):
-
+    count = 0
+    while(count<=3):
+        
         # atualiza o tempo
         milliseconds = time.time()
 
@@ -125,7 +125,7 @@ def ControleVelocidade():
 
         # Faz a medição a cada intervalo de tempo   
         if (delta_time >=intervalo):  
-            
+            count+=1
             # pulsos/pulsos_por_volta : porçao da rotação total do motor
             # rpm = (60/pulsos_por_volta)/(t(s))*pulsos)
             rpm_1 = int((60/pulsos_por_volta)/(delta_time)*pulsos_1)
@@ -133,40 +133,44 @@ def ControleVelocidade():
             rpm_2 = int((60/pulsos_por_volta)/(delta_time)*pulsos_2)
         
             timeold = time.time()
-            lista_rpm.append((rpm_1,rpm_2))
+            lista_rpm_1.append(rpm_1)
+            lista_rpm_2.append(rpm_2)
 
-            # Diferença de rpm para alteração do Dutycycle(DC)
-            delta_dc = abs((rpm_1-rpm_2))*1.8
-
-            # Se as velocidades forem diferentes, reduz a velocidade do motor com maior rpm
-            if(rpm_1 not in range(rpm_2-4,rpm_2+4)):
-                
-                # DutyCycle padrão
-                duty_cicle = 70
-
-                if (rpm_1>rpm_2):
-
-                    # Reduz o Dutycycle do motor 1
-                    pwm_1.ChangeDutyCycle(duty_cicle-delta_dc)
-                    pwm_2.ChangeDutyCycle(duty_cicle)
-
-                else:
-                    # Aumenta o Dutycycle do motor 1
-                    pwm_1.ChangeDutyCycle(duty_cicle+delta_dc)
-                    pwm_2.ChangeDutyCycle(duty_cicle)
-            
-            # Se as velocidade forem iguais ou próximas    
-            else:
-                break
-            
             # Reseta o pulsos para próxima contagem
             pulsos_1=0
             pulsos_2=0
+        else:
+            continue
+        
     
-    # Calcula a meédia da velocidade final entre os 2 motores
+    media_rpm_1 = int(np.mean(lista_rpm_1))
+    media_rpm_2 = int(np.mean(lista_rpm_2))
+    
+    print(media_rpm_1)
+    print(media_rpm_2)
+    # Se as velocidades forem diferentes, reduz a velocidade do motor com maior rpm
+    if(media_rpm_1 not in range(media_rpm_2-4,media_rpm_2+4)):
+        # Diferença de rpm para alteração do Dutycycle(DC)
+        delta_dc = abs((media_rpm_1-media_rpm_2))*0.5
+        
+        # DutyCycle padrão
+        duty_cicle = 70
+
+        if (media_rpm_1>media_rpm_2):
+
+            # Reduz o Dutycycle do motor 1
+            pwm_1.ChangeDutyCycle(duty_cicle-delta_dc)
+            pwm_2.ChangeDutyCycle(duty_cicle)
+
+        else:
+            # Aumenta o Dutycycle do motor 1
+            pwm_1.ChangeDutyCycle(duty_cicle+delta_dc)
+            pwm_2.ChangeDutyCycle(duty_cicle)      
+    
+    # Calcula a média da velocidade final entre os 2 motores
     # Vai ser usado para calcular o tempo que os motores ficarão acionados
     try:
-        rpm_final_medio = ((lista_rpm[-1][0]+lista_rpm[-1][1])/2)
+        rpm_final_medio = int((media_rpm_1+media_rpm_2)/2)
     except:
         rpm_final_medio=1
     
@@ -380,6 +384,7 @@ def ListaMovimentos(caminho,destino):
             GPIO.output(Motor1B,GPIO.LOW)
             GPIO.output(Motor2A,GPIO.LOW)
             GPIO.output(Motor2B,GPIO.HIGH)
+            time.sleep(2)
 
             
         # 3->2: Sul->leste(esquerda), 2->1: Leste->Norte(esquerda)
@@ -390,6 +395,7 @@ def ListaMovimentos(caminho,destino):
             GPIO.output(Motor1B,GPIO.HIGH)
             GPIO.output(Motor2A,GPIO.LOW)
             GPIO.output(Motor2B,GPIO.LOW)
+            time.sleep(2)
             
             
         print("em frente")
@@ -399,7 +405,6 @@ def ListaMovimentos(caminho,destino):
         GPIO.output(Motor2B,GPIO.HIGH)
         rpm = ControleVelocidade()
         
-        print(rpm)
         # tempo = s/v
         # v(m/s) = 2*pi*raio*rpm/60
         # s = 20cm
@@ -412,6 +417,8 @@ def ListaMovimentos(caminho,destino):
         anterior = move      
             
     GPIO.cleanup()
+    pwm_1.stop()
+    pwm_2.stop()
     return
 # -- Final das funções de movimento do carrinho   
 
