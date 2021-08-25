@@ -108,13 +108,11 @@ def ControleVelocidade():
 
         first_time= False
     
-    count=0
     while(True):
         milliseconds = time.time()
         delta_time = milliseconds-timeold
             
         if (delta_time >=intervalo):  
-            count+=1
             
             # pulsos/pulsos_por_volta : porçao da rotação total do motor
             rpm_1 = int((60/pulsos_por_volta)/(delta_time)*pulsos_1)
@@ -125,29 +123,35 @@ def ControleVelocidade():
             lista_rpm.append((rpm_1,rpm_2))
 
             # Diferença de rpm para alteração do Dutycycle(DC)
-            delta_dc = abs((rpm_1-rpm_2)*1.8)
+            delta_dc = abs((rpm_1-rpm_2))*1.8
 
             # Se as velocidades forem diferentes, reduz a velocidade do motor com maior rpm
-            if(rpm_1 not in range(rpm_2-10,rpm_2+10)):
+            if(rpm_1 not in range(rpm_2-4,rpm_2+4)):
                 
-                duty_cicle = 80
+                duty_cicle = 70
 
                 if (rpm_1>rpm_2):
                     pwm_1.ChangeDutyCycle(duty_cicle-delta_dc)
                     pwm_2.ChangeDutyCycle(duty_cicle)
 
                 else:
-                    pwm_1.ChangeDutyCycle(duty_cicle)
-                    pwm_2.ChangeDutyCycle(duty_cicle-delta_dc)
+                    pwm_1.ChangeDutyCycle(duty_cicle+delta_dc)
+                    pwm_2.ChangeDutyCycle(duty_cicle)
             
             # Se as velocidade forem iguais ou próximas    
             else:
-                print("Tudo ok!")
                 break
 
             pulsos_1=0
             pulsos_2=0
-    return 
+    
+    try:
+        rpm_final_medio = ((lista_rpm[-1][0]+lista_rpm[-1][1])/2)
+    except:
+        rpm_final_medio=1
+    
+    return rpm_final_medio
+
 # -- Final funções de controle de velocidade
 
 # -- Funções para A-Star Search
@@ -304,7 +308,7 @@ def ListaMovimentos(caminho,destino):
     move_carrinho = list()
 
     # tempo de cada movimento
-    tempo = 2
+    tempo = 0
     
     while( no.anterior != None):
         caminho_carrinho.append((no.anterior.i,no.anterior.j))
@@ -347,7 +351,7 @@ def ListaMovimentos(caminho,destino):
             GPIO.output(Motor1B,GPIO.LOW)
             GPIO.output(Motor2A,GPIO.LOW)
             GPIO.output(Motor2B,GPIO.HIGH)
-            time.sleep(tempo)
+
             
         # 3->2: sul->leste(esquerda), 2->1: leste->norte(esquerda)
         elif (move == 2 and anterior == 3) or (move == 1 and anterior == 2):
@@ -357,7 +361,6 @@ def ListaMovimentos(caminho,destino):
             GPIO.output(Motor1B,GPIO.HIGH)
             GPIO.output(Motor2A,GPIO.LOW)
             GPIO.output(Motor2B,GPIO.LOW)
-            time.sleep(tempo)
             
             
         print("em frente")
@@ -365,7 +368,16 @@ def ListaMovimentos(caminho,destino):
         GPIO.output(Motor1B,GPIO.HIGH)
         GPIO.output(Motor2A,GPIO.LOW)
         GPIO.output(Motor2B,GPIO.HIGH)
-        ControleVelocidade()
+        rpm = ControleVelocidade()
+        
+        print(rpm)
+        # tempo = s/v
+        # v(m/s) = 2*pi*r*rpm/60
+        # s = 20cm
+        # tempo = 0,2/2*3.14*raio*rpm/60
+
+        tempo = 0.2/2*3.14*0.015*rpm/60
+
         time.sleep(tempo)
         anterior = move      
             
