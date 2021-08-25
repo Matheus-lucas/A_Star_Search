@@ -61,7 +61,9 @@ GPIO.setup(encoder_2,GPIO.IN)
 
 # -- Fim da declaração dos GPIOs
 
-# -- contadores de pulsos
+# -- Variáveis para controle de velocidade
+
+# contadores de pulsos
 pulsos_1 = 0
 pulsos_2 = 0
 
@@ -73,6 +75,9 @@ intervalo = 0.5
 
 # Variável para acionar a interrupção em ControleVelocidade
 first_time = True
+# -- Fim das variáveis
+
+# -- Funções para controle de velocidade
 
 # Funções de callback para contagem dos pulsos
 def contador_1(encoder_1):
@@ -98,8 +103,9 @@ def ControleVelocidade():
 
     lista_rpm=list()
 
+    # habilita as interrupções para contagem dos pulsos na primeira vez
     if (first_time):
-        # habilita as interrupções para contagem dos pulsos
+        
         GPIO.add_event_detect(encoder_1, GPIO.RISING, 
             callback=contador_1, bouncetime=300)
     
@@ -108,13 +114,20 @@ def ControleVelocidade():
 
         first_time= False
     
+
     while(True):
+
+        # atualiza o tempo
         milliseconds = time.time()
+
+        # Diferença de tempo
         delta_time = milliseconds-timeold
-            
+
+        # Faz a medição a cada intervalo de tempo   
         if (delta_time >=intervalo):  
             
             # pulsos/pulsos_por_volta : porçao da rotação total do motor
+            # rpm = (60/pulsos_por_volta)/(t(s))*pulsos)
             rpm_1 = int((60/pulsos_por_volta)/(delta_time)*pulsos_1)
         
             rpm_2 = int((60/pulsos_por_volta)/(delta_time)*pulsos_2)
@@ -128,23 +141,30 @@ def ControleVelocidade():
             # Se as velocidades forem diferentes, reduz a velocidade do motor com maior rpm
             if(rpm_1 not in range(rpm_2-4,rpm_2+4)):
                 
+                # DutyCycle padrão
                 duty_cicle = 70
 
                 if (rpm_1>rpm_2):
+
+                    # Reduz o Dutycycle do motor 1
                     pwm_1.ChangeDutyCycle(duty_cicle-delta_dc)
                     pwm_2.ChangeDutyCycle(duty_cicle)
 
                 else:
+                    # Aumenta o Dutycycle do motor 1
                     pwm_1.ChangeDutyCycle(duty_cicle+delta_dc)
                     pwm_2.ChangeDutyCycle(duty_cicle)
             
             # Se as velocidade forem iguais ou próximas    
             else:
                 break
-
+            
+            # Reseta o pulsos para próxima contagem
             pulsos_1=0
             pulsos_2=0
     
+    # Calcula a meédia da velocidade final entre os 2 motores
+    # Vai ser usado para calcular o tempo que os motores ficarão acionados
     try:
         rpm_final_medio = ((lista_rpm[-1][0]+lista_rpm[-1][1])/2)
     except:
@@ -156,7 +176,7 @@ def ControleVelocidade():
 
 # -- Funções para A-Star Search
 
-# funçaõ heurística    
+# Função heurística    
 def Heuristica(atual, destino):
     h = 0.0
     h = abs(atual.i-destino.i)+abs(destino.j-atual.j)
@@ -191,12 +211,12 @@ def BuscarVizinhos(no, mapa):
 
 
 
-# Verifica se o proximo vizinho é válido
+# Verifica se o proximo vizinho é o destino
 def EncontraDestino(dest, row, col):
 
     return row == dest.i and col == dest.j
         
-# marca o caminho
+# Marca o caminho(Caminho: 4, Partida: 2, Destino: 3)
 def MarcarCaminho( mapa, caminho, inicio, dest):
     
     no = caminho[-1]
@@ -231,7 +251,7 @@ def ImprimirMapa(mapa):
         print("\n")
     return
 
-# funçaõ de busca A* search
+# Função de busca A* search
 def a_star(inicio=None,destino=None, mapa=None, file=None):
     fronteira = list()
     atual = No()
@@ -239,6 +259,7 @@ def a_star(inicio=None,destino=None, mapa=None, file=None):
     custo_g=0
     mapa_2=np.copy(mapa)
       
+    # Define o custo da partida
     inicio.f=Heuristica(inicio, destino)
     
     fronteira.append(inicio)
@@ -246,8 +267,6 @@ def a_star(inicio=None,destino=None, mapa=None, file=None):
     
     count=1
     while(not len(fronteira)==0):
-      
-        #print("{:.1f} %".format(count/100000), end="\r")
         
         atual = fronteira[-1]
         del fronteira[-1]
@@ -256,13 +275,14 @@ def a_star(inicio=None,destino=None, mapa=None, file=None):
         if((atual.i==destino.i and atual.j==destino.j) or count==50000): 
             break
     
-        
+        # Realiza a busca de vizinhos
         vizinhos = BuscarVizinhos(atual, mapa_2)
         custo_g+=1
         
         # Atualiza a lista fechada
         listafechada.append((atual.i,atual.j))
         
+        # Se Houverem vizinhos
         if(vizinhos):
         
             for vizinho in vizinhos:
@@ -271,7 +291,6 @@ def a_star(inicio=None,destino=None, mapa=None, file=None):
                 
                 #puWU
                 #custo = custo_g / (2*w - 1) +h if  custo_g < (2*w - 1) *h else custo_g + h / w
-                    
                 
                 #puWD
                 custo =  custo_g +h if  custo_g < h else (custo_g + h*(2*w-1)) / w
@@ -293,6 +312,7 @@ def a_star(inicio=None,destino=None, mapa=None, file=None):
         fronteira.sort(key=ComparaCusto, reverse=True)
         count+=1
     
+    # Marca o caminho no mapa
     MarcarCaminho(mapa_2,caminho,inicio,destino)
     ImprimirMapa(mapa_2)
     print(count)
@@ -310,20 +330,29 @@ def ListaMovimentos(caminho,destino):
     # tempo de cada movimento
     tempo = 0
     
+    # Desempacotando o caminho
     while( no.anterior != None):
         caminho_carrinho.append((no.anterior.i,no.anterior.j))
         no=no.anterior
         
+    # Reverte o vetor caminho
     caminho_carrinho=caminho_carrinho[::-1]
+
+    # Inclui destino no caminho
     caminho_carrinho.append((destino.i,destino.j))
     
-    # lista de movimentos do carrinho
+    # Lista de movimentos do carrinho
     for x in range(len(caminho_carrinho)-1):
         atual = caminho_carrinho[x]
         prox = caminho_carrinho[x+1]
         
+        # Norte -> direção = (-1,0)
+        # Leste -> direção = (0,1)
+        # Sul -> direção = (1,0)
+        # Oeste -> direção = (-1,0)
         direcao = (prox[0]-atual[0], prox[1]-atual[1])
-        #  Norte = 1, leste = 2, sul = 3, oeste = 4
+        
+        #  Norte = 1, Leste = 2, Sul = 3, Oeste = 4
         if direcao == (-1,0):
             move_carrinho.append(1)
             
@@ -344,7 +373,7 @@ def ListaMovimentos(caminho,destino):
     # Estipulando que o carrinho começa em P, virado para o sul(FRENTE POWERBANK)
     for move in move_carrinho:
         
-        # 1->2: norte->leste(direita), 2->3: leste->sul(direita)
+        # 1->2: Norte->Leste(direita), 2->3: Leste->Sul(direita)
         if  (move == 2 and anterior == 1)or (move == 3 and anterior == 2):
             print("vira a direita")
             GPIO.output(Motor1A,GPIO.LOW)
@@ -353,7 +382,7 @@ def ListaMovimentos(caminho,destino):
             GPIO.output(Motor2B,GPIO.HIGH)
 
             
-        # 3->2: sul->leste(esquerda), 2->1: leste->norte(esquerda)
+        # 3->2: Sul->leste(esquerda), 2->1: Leste->Norte(esquerda)
         elif (move == 2 and anterior == 3) or (move == 1 and anterior == 2):
             print("vira a esquerda")
             
@@ -372,9 +401,10 @@ def ListaMovimentos(caminho,destino):
         
         print(rpm)
         # tempo = s/v
-        # v(m/s) = 2*pi*r*rpm/60
+        # v(m/s) = 2*pi*raio*rpm/60
         # s = 20cm
-        # tempo = 0,2/2*3.14*raio*rpm/60
+        # raio = 0.015 m
+        # tempo = 0,2/(2*3.14*raio*rpm/60)
 
         tempo = 0.2/2*3.14*0.015*rpm/60
 
@@ -398,11 +428,12 @@ def main():
    
     destino = No(len(mapa)-1,len(mapa[0])-1,f=0.0)
     
-    # Validação do inicio e Partida
+    # Validação da Partida
     if(not CelulaVazia(mapa,inicio.i,inicio.j) and VerificaLimites(mapa, inicio.i, inicio.j)): 
         print("Partida não é válida!")
         return
     
+    # Validação do destino
     if(not CelulaVazia(mapa,destino.i,destino.j) and VerificaLimites(mapa, destino.i, destino.j)): 
         print("Destino não é válido!")
         return
