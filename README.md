@@ -88,6 +88,7 @@ def contador_2(encoder_2):
 ```
 ## Função de controle de velocidade
 ```python
+# Função de controle de velocidade
 def ControleVelocidade():
 
     global pulsos_1
@@ -98,57 +99,76 @@ def ControleVelocidade():
     # Para diferença de tempo
     timeold = time.time()
 
-    lista_rpm=list()
-
+    lista_rpm_1=list()
+    lista_rpm_2=list()
+    # habilita as interrupções para contagem dos pulsos na primeira vez
     if (first_time):
-        # habilita as interrupções para contagem dos pulsos
+        
         GPIO.add_event_detect(encoder_1, GPIO.RISING, 
-            callback=contador_1, bouncetime=300)
+            callback=contador_1, bouncetime=50)
     
         GPIO.add_event_detect(encoder_2, GPIO.RISING,
-            callback=contador_2,bouncetime=300)
+            callback=contador_2,bouncetime=50)
 
         first_time= False
     
-    while(True):
+    count = 0
+    while(count<=3):
+        
+        # atualiza o tempo
         milliseconds = time.time()
+
+        # Diferença de tempo
         delta_time = milliseconds-timeold
-            
+
+        # Faz a medição a cada intervalo de tempo   
         if (delta_time >=intervalo):  
-            
+            count+=1
             # pulsos/pulsos_por_volta : porçao da rotação total do motor
+            # rpm = (60/pulsos_por_volta)/(t(s))*pulsos)
             rpm_1 = int((60/pulsos_por_volta)/(delta_time)*pulsos_1)
         
             rpm_2 = int((60/pulsos_por_volta)/(delta_time)*pulsos_2)
         
             timeold = time.time()
-            lista_rpm.append((rpm_1,rpm_2))
+            lista_rpm_1.append(rpm_1)
+            lista_rpm_2.append(rpm_2)
 
-            # Diferença de rpm para alteração do Dutycycle(DC)
-            delta_dc = abs((rpm_1-rpm_2))*1.8
-
-            # Se as velocidades forem diferentes, reduz a velocidade do motor com maior rpm
-            if(rpm_1 not in range(rpm_2-4,rpm_2+4)):
-                
-                duty_cicle = 70
-
-                if (rpm_1>rpm_2):
-                    pwm_1.ChangeDutyCycle(duty_cicle-delta_dc)
-                    pwm_2.ChangeDutyCycle(duty_cicle)
-
-                else:
-                    pwm_1.ChangeDutyCycle(duty_cicle+delta_dc)
-                    pwm_2.ChangeDutyCycle(duty_cicle)
-            
-            # Se as velocidade forem iguais ou próximas    
-            else:
-                break
-
+            # Reseta o pulsos para próxima contagem
             pulsos_1=0
             pulsos_2=0
+        else:
+            continue
+        
     
+    media_rpm_1 = int(np.mean(lista_rpm_1))
+    media_rpm_2 = int(np.mean(lista_rpm_2))
+    
+    print(media_rpm_1)
+    print(media_rpm_2)
+    # Se as velocidades forem diferentes, reduz a velocidade do motor com maior rpm
+    if(media_rpm_1 not in range(media_rpm_2-2,media_rpm_2+2)):
+        # Diferença de rpm para alteração do Dutycycle(DC)
+        delta_dc = abs((media_rpm_1-media_rpm_2))*0.5
+        
+        # DutyCycle padrão
+        duty_cicle = 80
+
+        if (media_rpm_1>media_rpm_2):
+
+            # Reduz o Dutycycle do motor 1
+            pwm_1.ChangeDutyCycle(duty_cicle)
+            pwm_2.ChangeDutyCycle(duty_cicle)
+
+        else:
+            # Aumenta o Dutycycle do motor 1
+            pwm_1.ChangeDutyCycle(duty_cicle)
+            pwm_2.ChangeDutyCycle(duty_cicle)      
+    
+    # Calcula a média da velocidade final entre os 2 motores
+    # Vai ser usado para calcular o tempo que os motores ficarão acionados
     try:
-        rpm_final_medio = ((lista_rpm[-1][0]+lista_rpm[-1][1])/2)
+        rpm_final_medio = int((media_rpm_1+media_rpm_2)/2)
     except:
         rpm_final_medio=1
     
@@ -313,20 +333,29 @@ def ListaMovimentos(caminho,destino):
     # tempo de cada movimento
     tempo = 0
     
+    # Desempacotando o caminho
     while( no.anterior != None):
         caminho_carrinho.append((no.anterior.i,no.anterior.j))
         no=no.anterior
         
+    # Reverte o vetor caminho
     caminho_carrinho=caminho_carrinho[::-1]
+
+    # Inclui destino no caminho
     caminho_carrinho.append((destino.i,destino.j))
     
-    # lista de movimentos do carrinho
+    # Lista de movimentos do carrinho
     for x in range(len(caminho_carrinho)-1):
         atual = caminho_carrinho[x]
         prox = caminho_carrinho[x+1]
         
+        # Norte -> direção = (-1,0)
+        # Leste -> direção = (0,1)
+        # Sul -> direção = (1,0)
+        # Oeste -> direção = (-1,0)
         direcao = (prox[0]-atual[0], prox[1]-atual[1])
-        #  Norte = 1, leste = 2, sul = 3, oeste = 4
+        
+        #  Norte = 1, Leste = 2, Sul = 3, Oeste = 4
         if direcao == (-1,0):
             move_carrinho.append(1)
             
@@ -343,49 +372,62 @@ def ListaMovimentos(caminho,destino):
     #print("Carrinho")
     #print(move_carrinho)
     anterior = 0
-    
-    # Estipulando que o carrinho começa em P, virado para o sul(FRENTE POWERBANK)
-    for move in move_carrinho:
-        
-        # 1->2: norte->leste(direita), 2->3: leste->sul(direita)
-        if  (move == 2 and anterior == 1)or (move == 3 and anterior == 2):
-            print("vira a direita")
-            GPIO.output(Motor1A,GPIO.LOW)
-            GPIO.output(Motor1B,GPIO.LOW)
-            GPIO.output(Motor2A,GPIO.LOW)
-            GPIO.output(Motor2B,GPIO.HIGH)
 
+    try:
+    
+        # Estipulando que o carrinho começa em P, virado para o sul(FRENTE POWERBANK)
+        for move in move_carrinho:
             
-        # 3->2: sul->leste(esquerda), 2->1: leste->norte(esquerda)
-        elif (move == 2 and anterior == 3) or (move == 1 and anterior == 2):
-            print("vira a esquerda")
-            
+            # 1->2: Norte->Leste(direita), 2->3: Leste->Sul(direita)
+            if  (move == 2 and anterior == 1)or (move == 3 and anterior == 2):
+                print("vira a direita")
+                GPIO.output(Motor1A,GPIO.LOW)
+                GPIO.output(Motor1B,GPIO.LOW)
+                GPIO.output(Motor2A,GPIO.LOW)
+                GPIO.output(Motor2B,GPIO.HIGH)
+                time.sleep(0.2)
+
+                
+            # 3->2: Sul->leste(esquerda), 2->1: Leste->Norte(esquerda)
+            elif (move == 2 and anterior == 3) or (move == 1 and anterior == 2):
+                print("vira a esquerda")
+                
+                GPIO.output(Motor1A,GPIO.LOW)
+                GPIO.output(Motor1B,GPIO.HIGH)
+                GPIO.output(Motor2A,GPIO.LOW)
+                GPIO.output(Motor2B,GPIO.LOW)
+                time.sleep(0.2)
+                
+                
+            print("em frente")
             GPIO.output(Motor1A,GPIO.LOW)
             GPIO.output(Motor1B,GPIO.HIGH)
             GPIO.output(Motor2A,GPIO.LOW)
-            GPIO.output(Motor2B,GPIO.LOW)
+            GPIO.output(Motor2B,GPIO.HIGH)
+            rpm = ControleVelocidade()
             
-            
-        print("em frente")
-        GPIO.output(Motor1A,GPIO.LOW)
-        GPIO.output(Motor1B,GPIO.HIGH)
-        GPIO.output(Motor2A,GPIO.LOW)
-        GPIO.output(Motor2B,GPIO.HIGH)
-        rpm = ControleVelocidade()
+            # tempo = s/v
+            # v(m/s) = 2*pi*raio*rpm/60
+            # s = 20cm
+            # raio = 0.015 m
+            # tempo = 0,2/(2*3.14*raio*rpm/60)
+
+            tempo = round(0.2/(2*3.14*0.015*rpm/60))/60
+            print(tempo)
+            time.sleep(tempo)
+            anterior = move      
+
+        pwm_1.stop()
+        pwm_2.stop()
+        GPIO.cleanup()
         
-        print(rpm)
-        # tempo = s/v
-        # v(m/s) = 2*pi*r*rpm/60
-        # s = 20cm
-        # tempo = 0,2/2*3.14*raio*rpm/60
+    except:
+        pwm_1.stop()
+        pwm_2.stop()
+        GPIO.cleanup()
 
-        tempo = 0.2/2*3.14*0.015*rpm/60
-
-        time.sleep(tempo)
-        anterior = move      
-            
-    GPIO.cleanup()
     return
+
 ```
 
 ## Função main

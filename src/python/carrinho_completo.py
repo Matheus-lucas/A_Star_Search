@@ -49,8 +49,8 @@ GPIO.setup(Motor2B,GPIO.OUT)
 #PWM
 pwm_1 = GPIO.PWM(Motor1A,100)
 pwm_2 = GPIO.PWM(Motor2A,100)
-pwm_1.start(0)
-pwm_2.start(0)
+#pwm_1.start(0)
+#pwm_2.start(0)
 
 # Pino do encoders  
 encoder_1 = 11
@@ -71,7 +71,7 @@ pulsos_2 = 0
 pulsos_por_volta = 20
 
 # Intervalo para medição de dpm
-intervalo = 0.5
+intervalo = 0.1
 
 # Variável para acionar a interrupção em ControleVelocidade
 first_time = True
@@ -154,17 +154,17 @@ def ControleVelocidade():
         delta_dc = abs((media_rpm_1-media_rpm_2))*0.5
         
         # DutyCycle padrão
-        duty_cicle = 70
+        duty_cicle = 80
 
         if (media_rpm_1>media_rpm_2):
 
             # Reduz o Dutycycle do motor 1
-            pwm_1.ChangeDutyCycle(duty_cicle-delta_dc)
+            pwm_1.ChangeDutyCycle(duty_cicle)
             pwm_2.ChangeDutyCycle(duty_cicle)
 
         else:
             # Aumenta o Dutycycle do motor 1
-            pwm_1.ChangeDutyCycle(duty_cicle+delta_dc)
+            pwm_1.ChangeDutyCycle(duty_cicle)
             pwm_2.ChangeDutyCycle(duty_cicle)      
     
     # Calcula a média da velocidade final entre os 2 motores
@@ -373,52 +373,60 @@ def ListaMovimentos(caminho,destino):
     #print("Carrinho")
     #print(move_carrinho)
     anterior = 0
-    
-    # Estipulando que o carrinho começa em P, virado para o sul(FRENTE POWERBANK)
-    for move in move_carrinho:
-        
-        # 1->2: Norte->Leste(direita), 2->3: Leste->Sul(direita)
-        if  (move == 2 and anterior == 1)or (move == 3 and anterior == 2):
-            print("vira a direita")
-            GPIO.output(Motor1A,GPIO.LOW)
-            GPIO.output(Motor1B,GPIO.LOW)
-            GPIO.output(Motor2A,GPIO.LOW)
-            GPIO.output(Motor2B,GPIO.HIGH)
-            time.sleep(2)
 
+    try:
+    
+        # Estipulando que o carrinho começa em P, virado para o sul(FRENTE POWERBANK)
+        for move in move_carrinho:
             
-        # 3->2: Sul->leste(esquerda), 2->1: Leste->Norte(esquerda)
-        elif (move == 2 and anterior == 3) or (move == 1 and anterior == 2):
-            print("vira a esquerda")
-            
+            # 1->2: Norte->Leste(direita), 2->3: Leste->Sul(direita)
+            if  (move == 2 and anterior == 1)or (move == 3 and anterior == 2):
+                print("vira a direita")
+                GPIO.output(Motor1A,GPIO.LOW)
+                GPIO.output(Motor1B,GPIO.LOW)
+                GPIO.output(Motor2A,GPIO.LOW)
+                GPIO.output(Motor2B,GPIO.HIGH)
+                time.sleep(0.2)
+
+                
+            # 3->2: Sul->leste(esquerda), 2->1: Leste->Norte(esquerda)
+            elif (move == 2 and anterior == 3) or (move == 1 and anterior == 2):
+                print("vira a esquerda")
+                
+                GPIO.output(Motor1A,GPIO.LOW)
+                GPIO.output(Motor1B,GPIO.HIGH)
+                GPIO.output(Motor2A,GPIO.LOW)
+                GPIO.output(Motor2B,GPIO.LOW)
+                time.sleep(0.2)
+                
+                
+            print("em frente")
             GPIO.output(Motor1A,GPIO.LOW)
             GPIO.output(Motor1B,GPIO.HIGH)
             GPIO.output(Motor2A,GPIO.LOW)
-            GPIO.output(Motor2B,GPIO.LOW)
-            time.sleep(2)
+            GPIO.output(Motor2B,GPIO.HIGH)
+            rpm = ControleVelocidade()
             
-            
-        print("em frente")
-        GPIO.output(Motor1A,GPIO.LOW)
-        GPIO.output(Motor1B,GPIO.HIGH)
-        GPIO.output(Motor2A,GPIO.LOW)
-        GPIO.output(Motor2B,GPIO.HIGH)
-        rpm = ControleVelocidade()
+            # tempo = s/v
+            # v(m/s) = 2*pi*raio*rpm/60
+            # s = 20cm
+            # raio = 0.015 m
+            # tempo = 0,2/(2*3.14*raio*rpm/60)
+
+            tempo = round(0.2/(2*3.14*0.015*rpm/60))/60
+            print(tempo)
+            time.sleep(tempo)
+            anterior = move      
+
+        pwm_1.stop()
+        pwm_2.stop()
+        GPIO.cleanup()
         
-        # tempo = s/v
-        # v(m/s) = 2*pi*raio*rpm/60
-        # s = 20cm
-        # raio = 0.015 m
-        # tempo = 0,2/(2*3.14*raio*rpm/60)
+    except:
+        pwm_1.stop()
+        pwm_2.stop()
+        GPIO.cleanup()
 
-        tempo = 0.2/2*3.14*0.015*rpm/60
-
-        time.sleep(tempo)
-        anterior = move      
-            
-    GPIO.cleanup()
-    pwm_1.stop()
-    pwm_2.stop()
     return
 # -- Final das funções de movimento do carrinho   
 
