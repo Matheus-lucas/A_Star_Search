@@ -70,7 +70,7 @@ pulsos_2 = 0
 # QTde de Pulsos de acordo com o disco
 pulsos_por_volta = 20
 
-# Intervalo para medição de dpm
+# Intervalo para medição de pm
 intervalo = 0.1
 
 # Variável para acionar a interrupção em ControleVelocidade
@@ -149,9 +149,9 @@ def ControleVelocidade():
     print(media_rpm_1)
     print(media_rpm_2)
     # Se as velocidades forem diferentes, reduz a velocidade do motor com maior rpm
-    if(media_rpm_1 not in range(media_rpm_2-2,media_rpm_2+2)):
+    if(media_rpm_1 not in range(media_rpm_2-5,media_rpm_2+5)):
         # Diferença de rpm para alteração do Dutycycle(DC)
-        delta_dc = abs((media_rpm_1-media_rpm_2))*0.5
+        delta_dc = abs((media_rpm_1-media_rpm_2))
         
         # DutyCycle padrão
         duty_cicle = 80
@@ -159,13 +159,13 @@ def ControleVelocidade():
         if (media_rpm_1>media_rpm_2):
 
             # Reduz o Dutycycle do motor 1
-            pwm_1.ChangeDutyCycle(duty_cicle)
+            pwm_1.ChangeDutyCycle(duty_cicle-delta_dc)
             pwm_2.ChangeDutyCycle(duty_cicle)
 
         else:
             # Aumenta o Dutycycle do motor 1
             pwm_1.ChangeDutyCycle(duty_cicle)
-            pwm_2.ChangeDutyCycle(duty_cicle)      
+            pwm_2.ChangeDutyCycle(duty_cicle-delta_dc)      
     
     # Calcula a média da velocidade final entre os 2 motores
     # Vai ser usado para calcular o tempo que os motores ficarão acionados
@@ -175,6 +175,16 @@ def ControleVelocidade():
         rpm_final_medio=1
     
     return rpm_final_medio
+
+#Função de parada
+def stop():
+    GPIO.output(Motor1A,GPIO.LOW)
+    GPIO.output(Motor1B,GPIO.LOW)
+    GPIO.output(Motor2A,GPIO.LOW)
+    GPIO.output(Motor2B,GPIO.LOW)
+    time.sleep(1)
+
+    return
 
 # -- Final funções de controle de velocidade
 
@@ -382,22 +392,39 @@ def ListaMovimentos(caminho,destino):
             # 1->2: Norte->Leste(direita), 2->3: Leste->Sul(direita)
             if  (move == 2 and anterior == 1)or (move == 3 and anterior == 2):
                 print("vira a direita")
+                
+                GPIO.output(Motor1A,GPIO.HIGH)
+                GPIO.output(Motor1B,GPIO.LOW)
+                GPIO.output(Motor2A,GPIO.HIGH)
+                GPIO.output(Motor2B,GPIO.LOW)
+                time.sleep(0.45)
+                stop()
+                
                 GPIO.output(Motor1A,GPIO.LOW)
                 GPIO.output(Motor1B,GPIO.LOW)
                 GPIO.output(Motor2A,GPIO.LOW)
                 GPIO.output(Motor2B,GPIO.HIGH)
-                time.sleep(0.2)
+                time.sleep(0.82)
+                stop()
 
                 
             # 3->2: Sul->leste(esquerda), 2->1: Leste->Norte(esquerda)
             elif (move == 2 and anterior == 3) or (move == 1 and anterior == 2):
                 print("vira a esquerda")
                 
+                GPIO.output(Motor1A,GPIO.HIGH)
+                GPIO.output(Motor1B,GPIO.LOW)
+                GPIO.output(Motor2A,GPIO.HIGH)
+                GPIO.output(Motor2B,GPIO.LOW)
+                time.sleep(0.4)
+                stop()
+                
                 GPIO.output(Motor1A,GPIO.LOW)
                 GPIO.output(Motor1B,GPIO.HIGH)
                 GPIO.output(Motor2A,GPIO.LOW)
                 GPIO.output(Motor2B,GPIO.LOW)
-                time.sleep(0.2)
+                time.sleep(0.75)
+                stop()
                 
                 
             print("em frente")
@@ -405,7 +432,7 @@ def ListaMovimentos(caminho,destino):
             GPIO.output(Motor1B,GPIO.HIGH)
             GPIO.output(Motor2A,GPIO.LOW)
             GPIO.output(Motor2B,GPIO.HIGH)
-            rpm = ControleVelocidade()
+            #rpm = ControleVelocidade()
             
             # tempo = s/v
             # v(m/s) = 2*pi*raio*rpm/60
@@ -413,9 +440,14 @@ def ListaMovimentos(caminho,destino):
             # raio = 0.015 m
             # tempo = 0,2/(2*3.14*raio*rpm/60)
 
-            tempo = round(0.2/(2*3.14*0.015*rpm/60))/60
+            #tempo = round(0.2/(2*3.14*0.015*rpm/60))/6
+            if move==1 or move ==3:
+                tempo=0.75
+            else:
+                tempo=0.5
             print(tempo)
             time.sleep(tempo)
+            stop()
             anterior = move      
 
         pwm_1.stop()
@@ -432,7 +464,7 @@ def ListaMovimentos(caminho,destino):
 
  
 def main():
-    file = '/home/pi/Documents/tcc_matheus/A_Star_Search-main/src/python/mapa_1.csv'
+    file = '/home/pi/Documents/tcc_matheus/A_Star_Search-main/src/python/mapa_3x5_reto.csv'
     
     inicio = No(0,0)
         
