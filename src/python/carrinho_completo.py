@@ -397,7 +397,7 @@ def ListaMovimentos(caminho,destino):
                 GPIO.output(Motor1B,GPIO.LOW)
                 GPIO.output(Motor2A,GPIO.HIGH)
                 GPIO.output(Motor2B,GPIO.LOW)
-                time.sleep(0.45)
+                time.sleep(0.5)
                 stop()
                 
                 GPIO.output(Motor1A,GPIO.LOW)
@@ -416,7 +416,7 @@ def ListaMovimentos(caminho,destino):
                 GPIO.output(Motor1B,GPIO.LOW)
                 GPIO.output(Motor2A,GPIO.HIGH)
                 GPIO.output(Motor2B,GPIO.LOW)
-                time.sleep(0.4)
+                time.sleep(0.45)
                 stop()
                 
                 GPIO.output(Motor1A,GPIO.LOW)
@@ -440,11 +440,11 @@ def ListaMovimentos(caminho,destino):
             # raio = 0.015 m
             # tempo = 0,2/(2*3.14*raio*rpm/60)
 
-            #tempo = round(0.2/(2*3.14*0.015*rpm/60))/6
+            #tempo = round(0.2/(2*3.14*0.015*rpm/60))/20
             if move==1 or move ==3:
                 tempo=0.75
             else:
-                tempo=0.5
+                tempo=0.6
             print(tempo)
             time.sleep(tempo)
             stop()
