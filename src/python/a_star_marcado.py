@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Dec  9 17:20:16 2021
+
+@author: mathe
+"""
+
 
 """
 Created on Thu Jul 29 14:24:20 2021
@@ -68,10 +75,14 @@ def BuscarVizinhos(no, mapa):
 def EncontraDestino(dest, row, col):
 
     return row == dest.i and col == dest.j
-        
-# Marca o caminho(Caminho: 4, Partida: 2, Destino: 3)
-def MarcarCaminho( mapa, caminho, inicio, dest):
+
     
+# Marca o caminho(Caminho: 4, Partida: 2, Destino: 3)
+def MarcarCaminho( mapa, caminho, inicio, dest, listafechada):
+
+    for no_exp in listafechada:
+        mapa[no_exp[0]][no_exp[1]]='5'
+
     no = caminho[-1]
     while( no.anterior != None):
         mapa[no.anterior.i][no.anterior.j]=4
@@ -94,6 +105,7 @@ def ConverteParaSimbolo(e):
     elif e==2: return "P"
     elif e==3: return "D"
     elif e==4: return "-"
+    elif e==5: return "*"
     else: return "0"
 
 
@@ -107,8 +119,8 @@ def ImprimirMapa(mapa):
     return
 
 # Função de busca A* search
-def a_star(inicio=None,destino=None, mapa=None, file=None):
-    fronteira = list()
+def a_star(inicio=None,destino=None, func_custo = None, mapa=None, file=None,  ):
+    lista_aberta = list()
     atual = No()
     caminho = list()
     custo_g=0
@@ -118,15 +130,19 @@ def a_star(inicio=None,destino=None, mapa=None, file=None):
     start = time.time()
     inicio.f=Heuristica(inicio, destino)
     
-    fronteira.append(inicio)
+    lista_aberta.append(inicio)
     listafechada=list()
     
     count=1
-    while(not len(fronteira)==0):
+    
+    while(not len(lista_aberta)==0):
         
-        atual = fronteira[-1]
-        del fronteira[-1]
+        atual = lista_aberta[-1]
+        del lista_aberta[-1]
         caminho.append(atual)
+        
+        # Atualiza a lista fechada
+        listafechada.append((atual.i,atual.j))
         
         if((atual.i==destino.i and atual.j==destino.j) or count==100000): 
             break
@@ -135,27 +151,34 @@ def a_star(inicio=None,destino=None, mapa=None, file=None):
         vizinhos = BuscarVizinhos(atual, mapa_2)
         custo_g+=1
         
-        # Atualiza a lista fechada
-        listafechada.append((atual.i,atual.j))
+        
         
         # Se Houverem vizinhos
         if(vizinhos):
         
             for vizinho in vizinhos:
                 custo_g+=1
+                
                 h = Heuristica(vizinho, destino)
                 
-                #clássico
-                custo = custo_g+h
-                
                 #Ponderado
-                #custo =    custo_g+10*h
+                if func_custo == 1:
                 
-                #puWU
-                #custo = custo_g / (2*w - 1) +h if  custo_g < (2*w - 1) *h else custo_g + h / w
+                    custo =    custo_g+w*h
                 
-                #puWD
-                #custo =  custo_g +h if  custo_g < h else (custo_g + h*(2*w-1)) / w
+                #pxWU
+                elif func_custo == 2:
+                
+                    custo = custo_g / (2*w - 1) +h if  custo_g < (2*w - 1) *h else custo_g + h / w
+                
+                #pxWD
+                elif func_custo == 3:
+                    
+                    custo =  custo_g +h if  custo_g < h else (custo_g + h*(2*w-1)) / w
+                
+                #clássico
+                else:
+                    custo = custo_g+h
                 
                 
                 # Verifica se aquele nó está na lista fechada   
@@ -170,16 +193,17 @@ def a_star(inicio=None,destino=None, mapa=None, file=None):
                     vizinho.anterior = No(i=atual.i,j=atual.j, anterior=atual.anterior,f=atual.f)
                     if (it!= -1): del caminho[it]
                     
-                    fronteira.append(vizinho)
+                    lista_aberta.append(vizinho)
+                    
+                
         
-        fronteira.sort(key=ComparaCusto, reverse=True)
+        lista_aberta.sort(key=ComparaCusto, reverse=True)
         count+=1
         
     end = time.time()
     
     # Marca o caminho no mapa
-    print(listafechada)
-    MarcarCaminho(mapa_2,caminho,inicio,destino)
+    MarcarCaminho(mapa_2,caminho,inicio,destino, listafechada)
     ImprimirMapa(mapa_2)
     print(count)
     print("Time: {:.5f}".format(end-start))
@@ -190,11 +214,13 @@ def a_star(inicio=None,destino=None, mapa=None, file=None):
 
 
 def main():
-    file = 'D:\TCC\src\mapas\mapas_testes\mapa_8x8.csv'
+    file = 'D:\TCC\src\mapas\mapas_testes\mapa_3x5.csv'
     
     inicio = No(0,0)
         
-       
+    print(" Funções de custo: 1 = Ponderado, 2 - pxwu, 3 - pxwd, defaul - normal")
+    func_custo = int(input("Qual a função custo?"))
+    
     # Carrega o arquivo
     my_data = np.genfromtxt(str(file), delimiter=';', dtype=int) 
     mapa=np.array(my_data)
@@ -211,7 +237,7 @@ def main():
         return
   
     
-    mapa,caminho= a_star(inicio,destino, mapa,file=file)    
+    mapa,caminho=a_star(inicio,destino, func_custo, mapa,file=file, )    
     return
         
 if __name__ == "__main__":
