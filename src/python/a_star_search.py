@@ -121,7 +121,7 @@ def a_star(inicio=None,destino=None, mapa=None, file=None):
     fronteira.append(inicio)
     listafechada=list()
     
-    count=1
+    count=0
     while(not len(fronteira)==0):
         
         atual = fronteira[-1]
@@ -133,6 +133,7 @@ def a_star(inicio=None,destino=None, mapa=None, file=None):
     
         # Realiza a busca de vizinhos
         vizinhos = BuscarVizinhos(atual, mapa_2)
+        
         custo_g+=1
         
         # Atualiza a lista fechada
@@ -142,14 +143,15 @@ def a_star(inicio=None,destino=None, mapa=None, file=None):
         if(vizinhos):
         
             for vizinho in vizinhos:
-                custo_g+=1
+                
+                count+=1
                 h = Heuristica(vizinho, destino)
                 
                 #clássico
-                custo = custo_g+h
+                #custo = custo_g+h
                 
                 #Ponderado
-                #custo =    custo_g+10*h
+                custo =    custo_g+w*h
                 
                 #puWU
                 #custo = custo_g / (2*w - 1) +h if  custo_g < (2*w - 1) *h else custo_g + h / w
@@ -178,7 +180,6 @@ def a_star(inicio=None,destino=None, mapa=None, file=None):
     end = time.time()
     
     # Marca o caminho no mapa
-    print(listafechada)
     MarcarCaminho(mapa_2,caminho,inicio,destino)
     ImprimirMapa(mapa_2)
     print(count)
@@ -190,7 +191,7 @@ def a_star(inicio=None,destino=None, mapa=None, file=None):
 
 
 def main():
-    file = 'D:\TCC\src\mapas\mapas_testes\mapa_8x8.csv'
+    file = 'D:\TCC\src\mapas\mapas_testes\mapa_11x18.csv'
     
     inicio = No(0,0)
         

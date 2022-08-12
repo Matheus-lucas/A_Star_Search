@@ -1,10 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Dec  9 17:20:16 2021
-
-@author: mathe
-"""
-
 
 """
 Created on Thu Jul 29 14:24:20 2021
@@ -14,15 +8,15 @@ Created on Thu Jul 29 14:24:20 2021
 import numpy as np
 import time
 # Peso para PUWU e PUWD
-wl=[1, 1.5,2,4,6,8,10, 15, 20]
 
+w=10
 # vetor de posições para vizinhos (norte, leste, sul, oeste)
 delta = [(-1,0),(0,-1),(1,0),(0,1)]
 
 # cria objeto nó
 class No(object):
     
-    def __init__(self, i=None, j=None, anterior=None, f=None):
+    def __init__(self, i=None, j=None, anterior=None, g=None, f=None):
         
         # indíces do nó
         self.i = i
@@ -31,6 +25,8 @@ class No(object):
         # nó anterior
         self.anterior = anterior
         
+        #custo g
+        self.g = g
         
         # custo
         self.f = f
@@ -130,7 +126,7 @@ def ContarPassos(caminho):
     return contador
 
 # Função de busca A* search
-def a_star(inicio=None,destino=None, func_custo = None, mapa=None, file=None,  ):
+def a_star(inicio=None,destino=None, mapa=None, lista_custo = None, file=None  ):
    
     lista_aberta = list()
     caminho = list()
@@ -140,10 +136,7 @@ def a_star(inicio=None,destino=None, func_custo = None, mapa=None, file=None,  )
     trajeto_final = list()
     
     
-    
-    
-    for w in wl:
-        if func_custo == None: w
+    for func_custo in lista_custo:
         
         lista_aberta.clear()
         listafechada.clear()
@@ -152,11 +145,11 @@ def a_star(inicio=None,destino=None, func_custo = None, mapa=None, file=None,  )
         atual = No()
         
         custo_g=0
+        
         inicio.g = custo_g
         
         mapa_2=np.copy(mapa)
     
-        
       
         # Define o custo da partida
         start = time.time()
@@ -165,7 +158,7 @@ def a_star(inicio=None,destino=None, func_custo = None, mapa=None, file=None,  )
         lista_aberta.append(inicio)
         
         
-        count=1
+        count=0
         
         while(not len(lista_aberta)==0):
             
@@ -177,32 +170,29 @@ def a_star(inicio=None,destino=None, func_custo = None, mapa=None, file=None,  )
             # Atualiza a lista fechada
             listafechada.append((atual.i,atual.j))
             
-            if((atual.i==destino.i and atual.j==destino.j) or count==1000): 
+            if((atual.i==destino.i and atual.j==destino.j) or count==100000): 
                 break
         
             # Realiza a busca de vizinhos
             vizinhos = BuscarVizinhos(atual, mapa_2)
-            
-            
+        
             # Atualização do custo g
             custo_g += 1
-            
-            
             
             # Se Houverem vizinhos
             if(vizinhos):
             
-                custo_g+=1
-                
                 for vizinho in vizinhos:
+                  
+                    custo_g=+1
+                    
                     h = Heuristica(vizinho, destino)
-
                     
                     #Ponderado
                     if func_custo == 1:
                     
                         custo =    custo_g+w*h
-                    
+                        
                     #pxWU
                     elif func_custo == 2:
                     
@@ -225,10 +215,9 @@ def a_star(inicio=None,destino=None, func_custo = None, mapa=None, file=None,  )
                     except:
                         it = -1
                     
-                    if  (it ==  -1 or custo <= caminho[it].f):
+                    if  (it ==  -1 or custo < caminho[it].f):
                         vizinho.f = custo
                         vizinho.anterior = No(i=atual.i,j=atual.j, anterior=atual.anterior, f=atual.f)
-                        
                         if (it!= -1): del caminho[it]
                         
                         lista_aberta.append(vizinho)
@@ -237,22 +226,34 @@ def a_star(inicio=None,destino=None, func_custo = None, mapa=None, file=None,  )
             lista_aberta.sort(key=ComparaCusto, reverse=True)
             count+=1
             
-            end = time.time()
-            tempo = end-start
+        end = time.time()
+        tempo = end-start
         
         passos=ContarPassos(caminho)
         
-        lista_tempo.append([tempo,w, count,passos])
+        
+        trajeto_final = np.copy(caminho)
+            
+        lista_tempo.append([tempo,w, count, passos])
             
     
-    # Marca o caminho no mapa
-    #MarcarCaminho(mapa_2,trajeto_final,inicio,destino, listafechada)
-    #ImprimirMapa(mapa_2)
+        # Marca o caminho no mapa
+        MarcarCaminho(mapa_2,trajeto_final,inicio,destino, listafechada)
+        ImprimirMapa(mapa_2)
+        
+        print("")
+        
+    nome = ["ponderado","pxwu","pxwd", "básico"]
+    marca = 0
+    
+    print(lista_tempo)
     
     for elem in lista_tempo:
+            
    
-          print("Time: {:.5f}, w:{}, count: {}, Passos: {}".format(elem[0],elem[1],elem[2],elem[3]))
-
+          print("Funcão: {}, Time: {:.5f}, w:{}, count: {}, Passos: {}".format(nome[marca],elem[0],elem[1],elem[2],elem[3]))
+          marca+=1
+          
 # -- FInal das funções para A-Star Search
     return mapa_2, trajeto_final
 
@@ -263,9 +264,6 @@ def main():
     
     inicio = No(0,0)
         
-    print("Funções de custo: 1 = Ponderado, 2 - pxwu, 3 - pxwd , default - normal")
-    func_custo = int(input("Qual a função custo?"))
-    
     # Carrega o arquivo
     my_data = np.genfromtxt(str(file), delimiter=';', dtype=int) 
     mapa=np.array(my_data)
@@ -282,8 +280,10 @@ def main():
         print("Destino não é válido!")
         return
   
+    lista_custo = list()
+    lista_custo =  [3,2,1,0]
     
-    mapa,caminho=a_star(inicio,destino, func_custo, mapa,file=file)    
+    mapa,caminho=a_star(inicio,destino, mapa, lista_custo, file=file )    
     return
         
 if __name__ == "__main__":

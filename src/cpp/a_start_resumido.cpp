@@ -115,6 +115,7 @@ bool CompararCusto(No a, No b){
 }
 
 void MarcarCaminho(vector<vector<int>> &mapa, vector<No> &caminho, No inicio, No destino){
+
     No no = caminho.back();
     while(no.anterior != nullptr){
         mapa[no.i][no.j] = 4;
@@ -166,7 +167,9 @@ void a_star_search(vector<vector<int>> &mapa, No inicio, No destino, int tipo)
         if((atual == destino_ass) or count==max_it) break;
 
         auto vizinhos = BuscarVizinhos(atual, mapa_ass);
+
         custo_g++;
+
         for(auto& vizinho : vizinhos){
             float h = Heuristica(atual, destino_ass);
             float custo = 0.0;
@@ -217,7 +220,7 @@ void a_star_search(vector<vector<int>> &mapa, No inicio, No destino, int tipo)
     cout << "\n\n==========Caminho "<<metodo<<"==========\n\n";
     MarcarCaminho(mapa_ass,caminho,inicio_ass,destino_ass);
     ImprimirMapa(mapa_ass);
-    cout<<"\nNumero células percorridas puWD: "<<count<<"\n";
+    cout<<"\nNumero células percorridas " << metodo<<": "<<count<<"\n";
 }
 
 
@@ -229,7 +232,7 @@ int main()
     No inicio{0, 0};
     
 
-    auto mapa = LeMapa("D:\\TCC\\src\\python\\mapa_1.csv");
+    auto mapa = LeMapa("D:\\TCC\\src\\mapas\\mapas_testes\\mapa_11x18.csv");
     
     if (mapa.size()==0)
     {
@@ -254,11 +257,12 @@ int main()
         return 0;
     }
 
-    /*time(&start);
+    time(&start);
     a_star_search(mapa, inicio, destino, 0);
     time(&end);
     cout<<"\nTempo de Execucao: "<<double(end-start)<<std::setprecision(5)<<" s\n";
-    */
+    
+
     /*time(&start);
     a_star_search(mapa, inicio, destino, 1);
     time(&end);
@@ -269,15 +273,16 @@ int main()
     time(&end);
     cout<<"\nTempo de Execucao com pesos 2: "<<double(end-start)<<std::setprecision(5)<<" s\n";
     */
-    time(&start);
-    a_star_search(mapa, inicio, destino,3);
-    time(&end); 
-    cout<<"\nTempo de Execucao com puWu: "<<double(end-start)<<std::setprecision(5)<<" s\n";
 
     time(&start);
     a_star_search(mapa, inicio, destino,4);
+    time(&end); 
+    cout<<"\nTempo de Execucao: "<<double(end-start)<<std::setprecision(5)<<" s\n";
+
+    time(&start);
+    a_star_search(mapa, inicio, destino,0);
     time(&end);
-    cout<<"\nTempo de Execucao com puWD: "<<double(end-start)<<std::setprecision(5)<<" s\n";
+    cout<<"\nTempo de Execucao: "<<double(end-start)<<std::setprecision(5)<<" s\n";
 
 return 0;
 }

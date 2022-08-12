@@ -31,6 +31,7 @@ class No(object):
         # nó anterior
         self.anterior = anterior
         
+        
         # custo
         self.f = f
 
@@ -68,7 +69,6 @@ def BuscarVizinhos(no, mapa):
     else: 
         print("Não há vizinhos")
         return
-
 
 
 # Verifica se o proximo vizinho é o destino
@@ -119,21 +119,27 @@ def ImprimirMapa(mapa):
     return
 
 # Função de busca A* search
-def a_star(inicio=None,destino=None, func_custo = None, mapa=None, file=None,  ):
+def a_star(inicio=None,destino=None, func_custo = None, mapa=None, file=None):
     lista_aberta = list()
     atual = No()
     caminho = list()
+    
     custo_g=0
+    
     mapa_2=np.copy(mapa)
+    
       
     # Define o custo da partida
     start = time.time()
+    
+    inicio.g = custo_g
     inicio.f=Heuristica(inicio, destino)
     
     lista_aberta.append(inicio)
+    
     listafechada=list()
     
-    count=1
+    count=0
     
     while(not len(lista_aberta)==0):
         
@@ -149,55 +155,61 @@ def a_star(inicio=None,destino=None, func_custo = None, mapa=None, file=None,  )
     
         # Realiza a busca de vizinhos
         vizinhos = BuscarVizinhos(atual, mapa_2)
-        custo_g+=1
         
-        
+        custo_g += 1
         
         # Se Houverem vizinhos
         if(vizinhos):
+            
         
             for vizinho in vizinhos:
-                custo_g+=1
                 
+                custo_g+=1
                 h = Heuristica(vizinho, destino)
                 
                 #Ponderado
                 if func_custo == 1:
                 
-                    custo =    custo_g+w*h
+                    custo =   custo_g + w * h
                 
                 #pxWU
                 elif func_custo == 2:
                 
-                    custo = custo_g / (2*w - 1) +h if  custo_g < (2*w - 1) *h else custo_g + h / w
+                    custo = custo_g / (2 * w - 1) + h if  custo_g < (2 * w - 1) *h else custo_g + h / w
                 
                 #pxWD
                 elif func_custo == 3:
                     
-                    custo =  custo_g +h if  custo_g < h else (custo_g + h*(2*w-1)) / w
+                    custo =  custo_g + h if  custo_g < h else (custo_g + h * (2 * w - 1)) / w
                 
                 #clássico
                 else:
-                    custo = custo_g+h
+                    custo = custo_g + h
                 
                 
                 # Verifica se aquele nó está na lista fechada   
                 try:
+                    
                     it = listafechada.index((vizinho.i,vizinho.j))
-
+                    
                 except:
                     it = -1
+
+               
                 
                 if  (it ==  -1 or custo < caminho[it].f):
+               
                     vizinho.f = custo
-                    vizinho.anterior = No(i=atual.i,j=atual.j, anterior=atual.anterior,f=atual.f)
-                    if (it!= -1): del caminho[it]
-                    
-                    lista_aberta.append(vizinho)
-                    
+                    vizinho.anterior = No(i=atual.i,j=atual.j, anterior=atual.anterior, f=atual.f)
                 
-        
+                    if (it != -1): del caminho[it]
+                
+                    lista_aberta.append(vizinho)
+               
+            
+                           
         lista_aberta.sort(key=ComparaCusto, reverse=True)
+
         count+=1
         
     end = time.time()
@@ -205,8 +217,8 @@ def a_star(inicio=None,destino=None, func_custo = None, mapa=None, file=None,  )
     # Marca o caminho no mapa
     MarcarCaminho(mapa_2,caminho,inicio,destino, listafechada)
     ImprimirMapa(mapa_2)
-    print(count)
     print("Time: {:.5f}".format(end-start))
+    print(count)
     return mapa_2,caminho
 
 # -- FInal das funções para A-Star Search
@@ -214,7 +226,8 @@ def a_star(inicio=None,destino=None, func_custo = None, mapa=None, file=None,  )
 
 
 def main():
-    file = 'D:\TCC\src\mapas\mapas_testes\mapa_3x5.csv'
+    file = 'D:\TCC\src\mapas\mapas_testes\mapa_11x18.csv'
+    
     
     inicio = No(0,0)
         

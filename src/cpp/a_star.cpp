@@ -38,7 +38,7 @@ bool operator==(No a, No b){
 }
 
 // Vizinhos do nó(norte, oeste, sul, leste)
-const vector<vector<int>> delta{{-1, 0}, {0, -1}, {1, 0}, {0, 1}};
+const vector<vector<int>> delta{{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
 
 vector<vector<int>> LeMapa(string nome_arquivo) {
   ifstream arquivo (nome_arquivo);
@@ -139,7 +139,7 @@ int main(){
     vector<No> caminho{};
     int custo_g = 0;
 
-    auto mapa = LeMapa("D:\\TCC\\Codigos\\mapas\\mapas_filtrados\\mapa_39x36.csv");
+    auto mapa = LeMapa("D:\\TCC\\Codigos\\mapas\\mapas_testes\\mapa_8x8.csv");
     //cout << "\n============Mapa Original=========\n\n";
     //ImprimirMapa(mapa);
     
@@ -183,9 +183,9 @@ int main(){
     }
     
 
-    //cout << "\n\n==========Caminho==========\n\n";
-    //MarcarCaminho(mapa,caminho,inicio,destino);
-    //ImprimirMapa(mapa);
+    cout << "\n\n==========Caminho==========\n\n";
+    MarcarCaminho(mapa,caminho,inicio,destino);
+    ImprimirMapa(mapa);
     time(&end);
     cout<<"\nNumero de Buscas: "<<count<<"\n";
     cout<<"\nTempo de Execucao: "<<double(end-start)<<std::setprecision(5)<<"\n";
